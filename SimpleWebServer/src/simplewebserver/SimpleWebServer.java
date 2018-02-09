@@ -9,6 +9,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import javax.swing.plaf.synth.SynthSeparatorUI;
+
 public class SimpleWebServer {
 
     /* Run the HTTP server on this TCP port. */
@@ -22,10 +24,10 @@ public class SimpleWebServer {
     }
 
     public void run() throws Exception {
+    	System.out.println("Server is running...");
     	while (true) {
     		/* wait for a connection from a client */
     		Socket s = dServerSocket.accept();
-
     		/* then process the client's request */
     		processRequest(s);
     	}
@@ -43,21 +45,30 @@ public class SimpleWebServer {
     	String request = br.readLine();
 
     	String command = null;
-    	String pathname = null;
+    	String sourcePathName = null;
+    	String destPathName = null;
 
     	/* parse the HTTP request */
     	StringTokenizer st = new StringTokenizer (request, " ");
 
     	command = st.nextToken();
-    	pathname = st.nextToken();
+    	sourcePathName = st.nextToken();
+    	if(st.hasMoreTokens()) {
+    		destPathName = st.nextToken();
+    	}
 
     	if (command.equals("GET")) {
     		/* if the request is a GET try to respond with the file the user is requesting */
-    		System.out.println("Path name: "+pathname);
-    		serveFile (osw,pathname);
+    		System.out.println("Path name: "+sourcePathName);
+    		serveFile (osw,sourcePathName);
+    	}
+    	else if(command.equals("PUT")) {
+    		System.out.println(sourcePathName + " saved");
+    		storeFile(br, osw, destPathName);
+    		Thread.sleep(5000);
     	}
     	else {
-    		/* if the request is a NOT a GET, return an error saying this server does not implement the requested command */
+    		/* if the request is a NOT a GET or PUT, return an error saying this server does not implement the requested command */
     		osw.write ("HTTP/1.0 501 Not Implemented\n\n");
     	}
 
@@ -99,6 +110,38 @@ public class SimpleWebServer {
     		c = fr.read();
     	}
     	osw.write (sb.toString());
+    	logEntry("logfile.txt", "Read "+ pathname);
+    	fr.close();
+    }
+    
+    public void storeFile(BufferedReader br, OutputStreamWriter osw, String pathname)throws Exception{
+
+    	FileWriter fw = null;
+    	try {
+    		fw = new FileWriter(pathname);
+    		String s = br.readLine();
+    		while(s != null) {
+    			fw.write(s+"\n");
+    			s = br.readLine();
+    		}
+    		logEntry("logfile.txt", "write "+pathname);
+    		osw.write("HTTP/1.0 201 created");
+    		fw.close();
+    	}catch(Exception e) {
+    		osw.write("HTTP/1.0 500 Internal Server Error!");
+    		
+    	}
+    }
+    
+    public void logEntry(String fileName, String record) {
+    	try {
+    	FileWriter fw = new FileWriter(fileName, true);
+    	fw.write((new Date()).toString() + " " + record +"\n");
+    	fw.close();
+    	}
+    	catch (IOException ex) {
+    		System.out.println("Writing log file fails!");
+    	}
     }
 
     /* This method is called when the program is run from the command line. */

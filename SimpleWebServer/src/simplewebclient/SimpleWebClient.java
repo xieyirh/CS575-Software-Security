@@ -2,6 +2,7 @@ package simplewebclient;
 
 import java.io.*;
 import java.net.*;
+import java.util.StringTokenizer;
 
 public class SimpleWebClient {
     private static final String hostName = "localhost";
@@ -22,16 +23,39 @@ public class SimpleWebClient {
             String userInput;
             if ((userInput = stdIn.readLine()) != null) {
                 out.println(userInput);
-                String response=in.readLine();
-                if (response!=null) {
-                	System.out.println("Response from Server: ");
-                	System.out.println(response);
-                	while ((response=in.readLine())!=null) {
-                		System.out.println(response);
+                String command = null;
+                String sourcePathName = null;
+                StringTokenizer st = new StringTokenizer (userInput, " ");
+                command = st.nextToken();
+                sourcePathName = st.nextToken();
+                
+                if(command.equals("PUT")) {
+                	BufferedReader fileline = new BufferedReader( new InputStreamReader(new FileInputStream(sourcePathName)));
+                	String line;
+                	while((line = fileline.readLine())!=null) {
+                		out.println(line);
                 	}
+                	fileline.close();
+                	
+                
                 }
+                if(command.equals("GET") || command.equals("PUT")) {
+                	String response=in.readLine();
+                	
+                	if (response!=null) {
+                		System.out.println("Response from Server: ");
+                		System.out.println(response);
+                		while ((response=in.readLine())!=null) {
+                			System.out.println(response);
+                		}
+                	}
+                	
+                }
+                serverSocket.close();
             }
-        } catch (UnknownHostException e) {
+        }
+      
+         catch (UnknownHostException e) {
             System.err.println("Don't know about host " + hostName);
             System.exit(1);
         } catch (IOException e) {
