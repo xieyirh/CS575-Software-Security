@@ -30,6 +30,7 @@ public class SimpleWebServer {
     		Socket s = dServerSocket.accept();
     		/* then process the client's request */
     		processRequest(s);
+    		//s.close();
     	}
     }
 
@@ -50,11 +51,16 @@ public class SimpleWebServer {
 
     	/* parse the HTTP request */
     	StringTokenizer st = new StringTokenizer (request, " ");
-
-    	command = st.nextToken();
-    	sourcePathName = st.nextToken();
-    	if(st.hasMoreTokens()) {
-    		destPathName = st.nextToken();
+    	try {
+    		command = st.nextToken();
+    		sourcePathName = st.nextToken();
+    		if(st.hasMoreTokens()) {
+    			destPathName = st.nextToken();
+    		}
+    	}
+    	catch(Exception e) {
+    		System.out.println("Token process error!");
+    		return;
     	}
 
     	if (command.equals("GET")) {
@@ -63,9 +69,7 @@ public class SimpleWebServer {
     		serveFile (osw,sourcePathName);
     	}
     	else if(command.equals("PUT")) {
-    		System.out.println(sourcePathName + " saved");
     		storeFile(br, osw, destPathName);
-    		Thread.sleep(5000);
     	}
     	else {
     		/* if the request is a NOT a GET or PUT, return an error saying this server does not implement the requested command */
@@ -112,10 +116,10 @@ public class SimpleWebServer {
     	osw.write (sb.toString());
     	logEntry("logfile.txt", "Read "+ pathname);
     	fr.close();
+    	osw.flush();
     }
     
     public void storeFile(BufferedReader br, OutputStreamWriter osw, String pathname)throws Exception{
-
     	FileWriter fw = null;
     	try {
     		fw = new FileWriter(pathname);
@@ -124,20 +128,24 @@ public class SimpleWebServer {
     			fw.write(s+"\n");
     			s = br.readLine();
     		}
-    		logEntry("logfile.txt", "write "+pathname);
-    		osw.write("HTTP/1.0 201 created");
     		fw.close();
-    	}catch(Exception e) {
-    		osw.write("HTTP/1.0 500 Internal Server Error!");
+    		osw.write("HTTP/1.0 201 created\n\n");
     		
+    		logEntry("logfile.txt", "write "+pathname);
+    		
+    		osw.flush();
+    	}catch(Exception e) {
+    		osw.write("HTTP/1.0 500 Internal Server Error!\n\n");
+    		osw.flush();
     	}
+    	System.out.println(pathname + " saved");
     }
     
     public void logEntry(String fileName, String record) {
     	try {
-    	FileWriter fw = new FileWriter(fileName, true);
-    	fw.write((new Date()).toString() + " " + record +"\n");
-    	fw.close();
+	    	FileWriter fw = new FileWriter(fileName, true);
+	    	fw.write((new Date()).toString() + " " + record +"\n");
+	    	fw.close();
     	}
     	catch (IOException ex) {
     		System.out.println("Writing log file fails!");

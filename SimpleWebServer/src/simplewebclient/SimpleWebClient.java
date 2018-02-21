@@ -8,40 +8,24 @@ public class SimpleWebClient {
     private static final String hostName = "localhost";
     private static final int PORT = 8080;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
         try (
             Socket serverSocket = new Socket(hostName, PORT);
-            PrintWriter out =
-                new PrintWriter(serverSocket.getOutputStream(), true);
-            BufferedReader in =
-                new BufferedReader(
-                    new InputStreamReader(serverSocket.getInputStream()));
-            BufferedReader stdIn =
-                new BufferedReader(
-                    new InputStreamReader(System.in))
-        ) {
-            String userInput;
+        	PrintWriter out = new PrintWriter(serverSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
+            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+        )
+        {
+            String userInput = null;
             if ((userInput = stdIn.readLine()) != null) {
                 out.println(userInput);
                 String command = null;
                 String sourcePathName = null;
                 StringTokenizer st = new StringTokenizer (userInput, " ");
                 command = st.nextToken();
-                sourcePathName = st.nextToken();
-                
-                if(command.equals("PUT")) {
-                	BufferedReader fileline = new BufferedReader( new InputStreamReader(new FileInputStream(sourcePathName)));
-                	String line;
-                	while((line = fileline.readLine())!=null) {
-                		out.println(line);
-                	}
-                	fileline.close();
-                	
-                
-                }
-                if(command.equals("GET") || command.equals("PUT")) {
+               
+                if(command.equals("GET")) {
                 	String response=in.readLine();
-                	
                 	if (response!=null) {
                 		System.out.println("Response from Server: ");
                 		System.out.println(response);
@@ -49,10 +33,35 @@ public class SimpleWebClient {
                 			System.out.println(response);
                 		}
                 	}
-                	
                 }
-                serverSocket.close();
-            }
+                else if (command.equals("PUT")) {
+                	try {
+                		sourcePathName = st.nextToken();
+                		passFile(out, sourcePathName);    
+                	/*	String response = null;
+                		if ((response =in.readLine())!=null) {
+                			System.out.println("Response from Server: ");
+                			System.out.println(response);
+                			while ((response=in.readLine())!=null) {
+                				System.out.println(response);
+                			}
+                		}
+                		*/
+                	}
+                	catch(Exception e ) {
+                		System.out.println("Token process error!");
+                		in.close();
+                		stdIn.close();
+                		serverSocket.close();
+                	}
+                }
+                else {
+                	System.out.println("Input error!");
+                }
+                out.close();
+           }
+            
+           serverSocket.close();
         }
       
          catch (UnknownHostException e) {
@@ -63,4 +72,25 @@ public class SimpleWebClient {
             System.exit(1);
         } 
     }
+	
+	@SuppressWarnings("resource")
+	public static void passFile(PrintWriter out, String pathname) throws Exception{
+		FileReader fr= null;
+		int c = -1;
+		StringBuffer sb = new StringBuffer();
+		try {
+			fr = new FileReader(pathname);
+			c = fr.read();
+		}
+		catch (Exception e) {
+			System.out.println("Input file not found!");
+			return;
+		}
+		while(c!=-1) {
+			sb.append((char)c);
+			c = fr.read();
+		}
+		out.write(sb.toString());
+		fr.close();
+	}
 }
