@@ -48,6 +48,8 @@ public class SimpleWebServer {
     	String command = null;
     	String sourcePathName = null;
     	String destPathName = null;
+    	
+    	
 
     	/* parse the HTTP request */
     	StringTokenizer st = new StringTokenizer (request, " ");
@@ -83,6 +85,8 @@ public class SimpleWebServer {
     public void serveFile (OutputStreamWriter osw, String pathname) throws Exception {
     	FileReader fr=null;
     	int c=-1;
+    	int bytesCounter = 0; //max integer in java is: 2,147,483,647
+    	int MAX_DOWNLOAD_LIMIT = 104857600; //MAX_DOWNLOAD_LIMIT = 100MB 104857600;
     	StringBuffer sb = new StringBuffer();
 
     	/* remove the initial slash at the beginning of the pathname in the request */
@@ -109,9 +113,15 @@ public class SimpleWebServer {
  	   and read, then return an OK response code and
  	   send the contents of the file */
     	osw.write ("HTTP/1.0 200 OK\n\n");
-    	while (c != -1) {
+    	while (c != -1 ) {
     		sb.append((char)c);
     		c = fr.read();
+    		bytesCounter++;
+    		if(bytesCounter > MAX_DOWNLOAD_LIMIT) {
+    			sb.replace(0, sb.length(),"Requested file is too big to serve!"); //clean the Stringbuffer and send client error info
+    			logEntry("error_log.txt", "403 Forbidden! Downloading file: " + pathname); //log the error info 1130
+    			break;
+    		}
     	}
     	osw.write (sb.toString());
     	logEntry("logfile.txt", "Read "+ pathname);
