@@ -18,13 +18,13 @@ public class SimpleWebClient {
         {
             String userInput = null;
             if ((userInput = stdIn.readLine()) != null) {
-                out.println(userInput);
                 String command = null;
                 String sourcePathName = null;
                 StringTokenizer st = new StringTokenizer (userInput, " ");
                 command = st.nextToken();
                
                 if(command.equals("GET")) {
+                	out.println(userInput);
                 	String response=in.readLine();
                 	if (response!=null) {
                 		System.out.println("Response from Server: ");
@@ -37,8 +37,8 @@ public class SimpleWebClient {
                 else if (command.equals("PUT")) {
                 	try {
                 		sourcePathName = st.nextToken();
-                		passFile(out, sourcePathName);    
-                	/*	String response = null;
+                		out.println(passFile(userInput,sourcePathName));    
+                		String response = null;
                 		if ((response =in.readLine())!=null) {
                 			System.out.println("Response from Server: ");
                 			System.out.println(response);
@@ -46,10 +46,9 @@ public class SimpleWebClient {
                 				System.out.println(response);
                 			}
                 		}
-                		*/
                 	}
                 	catch(Exception e ) {
-                		System.out.println("Token process error!");
+                		System.out.println(e);
                 		in.close();
                 		stdIn.close();
                 		serverSocket.close();
@@ -58,9 +57,9 @@ public class SimpleWebClient {
                 else {
                 	System.out.println("Input error!");
                 }
-                out.close();
            }
             
+           out.close();
            serverSocket.close();
         }
       
@@ -72,25 +71,33 @@ public class SimpleWebClient {
             System.exit(1);
         } 
     }
-	
-	@SuppressWarnings("resource")
-	public static void passFile(PrintWriter out, String pathname) throws Exception{
+
+	/**
+	 * stream the user input and the sending file
+	 * @param userInput user input from console
+	 * @param pathname source file
+	 * @return the string with user input command and file content
+	 * @throws Exception
+	 */
+	private static String passFile(String userInput,String pathname) throws Exception{
 		FileReader fr= null;
 		int c = -1;
 		StringBuffer sb = new StringBuffer();
+		sb.append(userInput + "\n");
 		try {
 			fr = new FileReader(pathname);
 			c = fr.read();
 		}
 		catch (Exception e) {
 			System.out.println("Input file not found!");
-			return;
+			return null;
 		}
 		while(c!=-1) {
 			sb.append((char)c);
 			c = fr.read();
 		}
-		out.write(sb.toString());
+		sb.append("end"); //When server detect the "end" line, it finishes the read process from client
 		fr.close();
+		return sb.toString();
 	}
 }
