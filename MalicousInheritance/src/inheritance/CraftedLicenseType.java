@@ -10,7 +10,7 @@ public class CraftedLicenseType extends LicenseType{
 		return guessedHashCode;
 	}
 	
-	//override
+	//override parent class
 	public boolean equals(Object arg){
 		return true; 
 	}
