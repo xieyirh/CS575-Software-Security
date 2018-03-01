@@ -1,0 +1,33 @@
+/*
+ *	stub.c - a stub routine for testing shellcode.
+ *	Defining SHELLCODE at compile time fixes issues with DEP.
+ *
+ *  http://blog.markloiseau.com/2012/06/64-bit-linux-shellcode/
+ */
+
+#include <stdlib.h>
+
+#define SHELLCODE_ARCHITECTURE 32
+
+#if SHELLCODE_ARCHITECTURE == 64
+// 64-bit hello world shellcode:
+	#define SHELLCODE \
+	"\xeb\x27\x48\x31\xc0\x48\x31\xff\x48\x31\xf6\x48\x31\xd2\x48\x83\xc0\x01\x48\x83\xc7\x01\x5e\x48\x83\xc2\x0e\x0f\x05\x48\x31\xc0\x48\x83\xc0\x3c\x48\x31\xff\x0f\x05\xe8\xd4\xff\xff\xff\x48\x65\x6c\x6c\x6f\x2c\x20\x77\x6f\x72\x6c\x64\x21\x0a"
+#else
+	//32 bit hello world shellcode:
+	#define SHELLCODE \
+	"\xeb\x1d\x31\xc0\x31\xdb\x31\xc9\x31\xd2\x83\xc0\x04\x83\xc3\x01\x59\x83\xc2\x0e\xcd\x80\x31\xc0\x83\xc0\x01\x31\xdb\xcd\x80\xe8\xde\xff\xff\xff\x48\x65\x6c\x6c\x6f\x2c\x20\x77\x6f\x72\x6c\x64\x21\x0a"
+#endif
+
+int main (int argc, char **argv) {
+	
+	// function pointer
+	int (*function)();
+	
+	// cast shellcode as a function
+	function = (int(*)())SHELLCODE;
+	
+	// execute shellcode function
+	(int)(*function)();
+	return 0;
+}
