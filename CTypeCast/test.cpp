@@ -49,7 +49,7 @@ class Car{
 	public:
 		Car(string s){brand=s;}
 
-		void seBrand(string s){brand = s;}
+		void setBrand(string s){brand = s;}
 		string getBrand() const{return brand;}
 };
 
@@ -65,7 +65,7 @@ int main(){
 	Shape *pCircle_Shape = static_cast<Shape*>(pCircle);
 	cout<<pCircle_Shape->getName()<<endl;
 	cout<<pCircle_Shape->getArea()<<endl;
-	//cout<<pCircle_Shape->getRadius()<<endl;
+	cout<<pCircle_Shape->getRadius()<<endl;
 	cout<<endl;
 
 	cout<<"valid downcast from pCircle_Shape to pCircleAgain demo:"<<endl;
